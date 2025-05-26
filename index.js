@@ -29,12 +29,6 @@ async function run() {
     const gameCollection = client.db("gameDB").collection("game");
     const userCollection = client.db("gameDB").collection("users");
 
-    app.get("/game", async (req, res) => {
-      const cursor = gameCollection.find();
-      const result = await cursor.toArray();
-      res.send(result);
-    });
-
     app.get("/game/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
@@ -46,6 +40,36 @@ async function run() {
       const newGame = req.body;
       console.log(newGame);
       const result = await gameCollection.insertOne(newGame);
+      res.send(result);
+    });
+
+    // get only my reviews
+    app.get("/game", async (req, res) => {
+      const email = req.query.email;
+      const filter = email
+        ? {
+            email: email,
+          }
+        : {};
+
+      const cursor = gameCollection.find(filter);
+      const result = await cursor.toArray();
+      res.send(result);
+    });
+
+    // delete a review
+    app.delete("/game/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await gameCollection.deleteOne(query);
+      res.send(result);
+    });
+
+    // update a review
+    app.get("/game/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await gameCollection.findOne(query);
       res.send(result);
     });
 
