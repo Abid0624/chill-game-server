@@ -65,11 +65,32 @@ async function run() {
       res.send(result);
     });
 
-    // update a review
+    // get a review for update
     app.get("/game/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await gameCollection.findOne(query);
+      res.send(result);
+    });
+
+    // update a review
+    app.put("/game/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const options = { upsert: true };
+      const updatedReview = req.body;
+      const review = {
+        $set: {
+          thumbnail: updatedReview.thumbnail,
+          title: updatedReview.title,
+          description: updatedReview.description,
+          rating: updatedReview.rating,
+          year: updatedReview.year,
+          genre: updatedReview.genre,
+        },
+      };
+
+      const result = await gameCollection.updateOne(filter, review, options);
       res.send(result);
     });
 
