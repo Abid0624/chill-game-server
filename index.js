@@ -28,6 +28,7 @@ async function run() {
   try {
     const gameCollection = client.db("gameDB").collection("game");
     const userCollection = client.db("gameDB").collection("users");
+    const watchlistCollection = client.db("gameDB").collection("watchlist");
 
     app.get("/game/:id", async (req, res) => {
       const id = req.params.id;
@@ -38,7 +39,7 @@ async function run() {
 
     app.post("/game", async (req, res) => {
       const newGame = req.body;
-      console.log(newGame);
+
       const result = await gameCollection.insertOne(newGame);
       res.send(result);
     });
@@ -91,6 +92,39 @@ async function run() {
       };
 
       const result = await gameCollection.updateOne(filter, review, options);
+      res.send(result);
+    });
+
+    // watchlist apis
+    app.post("/watchlist", async (req, res) => {
+      const newItem = req.body;
+
+      const existing = await watchlistCollection.findOne({
+        reviewId: newItem.reviewId,
+        userEmail: newItem.userEmail,
+      });
+
+      if (existing) {
+        return res.send({ alreadyExists: true });
+      }
+
+      const result = await watchlistCollection.insertOne(newItem);
+      res.send(result);
+    });
+
+    // get only my watchlist
+    app.get("/watchlist", async (req, res) => {
+      const email = req.query.email;
+      const filter = email ? { userEmail: email } : {};
+      const result = await watchlistCollection.find(filter).toArray();
+      res.send(result);
+    });
+
+    // delete from watchlist
+    app.delete("/watchlist/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await watchlistCollection.deleteOne(query);
       res.send(result);
     });
 
